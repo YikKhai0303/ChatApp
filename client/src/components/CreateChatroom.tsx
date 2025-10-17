@@ -43,18 +43,66 @@ const CreateChatroom = ({ onDialogChange }: { onDialogChange?: (open: boolean) =
 
   return (
     <>
-      <Button variant="contained" color="primary" fullWidth onClick={handleOpen}
-      sx={{ mb: 2, textTransform: "none", fontWeight: 500, bgcolor: "#8e9aaf", "&:hover": { bgcolor: "#494c52" }, "&:focus": { outline: "none" }, "&:focus-visible": { outline: "none" }}}
-      >CREATE CHATROOM
+      <Button
+        variant="contained"
+        color="primary"
+        onClick={handleOpen}
+        sx={{
+          mt:2,
+          mb: 2,
+          px: 2.5,
+          py: 1,
+          borderRadius: 1.5,
+          textTransform: "none",
+          fontWeight: 500,
+          fontSize: "0.95rem",
+          bgcolor: "#8e9aaf",
+          "&:hover": { bgcolor: "#494c52" },
+          "&:focus": { outline: "none" },
+          "&:focus-visible": { outline: "none" },
+        }}
+      >
+        CREATE ROOM
       </Button>
 
-      <Dialog open={dialogOpen} onClose={handleClose} maxWidth="xs" fullWidth>
-        <DialogTitle>Create Chatroom</DialogTitle>
-          <DialogContent sx={{ overflow: "visible" }}>
-            <ChatroomForm onSubmit={handleCreate} onCancel={handleClose} loading={loading} submitLabel="CREATE" />
-            {error && (<Alert severity="error" sx={{ mt: 2 }}>{error}</Alert>)}
-          </DialogContent>
-      </Dialog>
+
+    <Dialog
+      open={dialogOpen}
+      onClose={handleClose}
+      maxWidth="xs"
+      fullWidth
+      PaperProps={{
+        sx: {
+          mt: { xs: "120px", sm: 0 },   // ✅ push below TopBar for mobile
+          mx: { xs: 2, sm: 0 },         // ✅ side padding for narrow screens
+          borderRadius: 2,
+          boxShadow: 6,
+          overflow: "hidden",
+        },
+      }}
+    >
+      <DialogTitle>Create Chatroom</DialogTitle>
+      <DialogContent
+        sx={{
+          overflow: "visible",
+          px: { xs: 2.5, sm: 3 },  // ✅ adds left & right padding
+          pt: { xs: 1, sm: 2 },    // ✅ adds top padding
+          pb: { xs: 2.5, sm: 3 },  // ✅ adds bottom padding
+        }}
+      >
+        <ChatroomForm
+          onSubmit={handleCreate}
+          onCancel={handleClose}
+          loading={loading}
+          submitLabel="CREATE"
+        />
+        {error && (
+          <Alert severity="error" sx={{ mt: 2 }}>
+            {error}
+          </Alert>
+        )}
+      </DialogContent>
+    </Dialog>
 
       <Snackbar open={snackbarOpen} autoHideDuration={2000} onClose={() => setSnackbarOpen(false)} anchorOrigin={{ vertical: "top", horizontal: "center" }}>
         <Alert onClose={() => setSnackbarOpen(false)} severity={error ? "error" : "success"} sx={{ width: "100%" }}>

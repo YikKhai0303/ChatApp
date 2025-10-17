@@ -109,8 +109,26 @@ const ChatWindow = ({ chatroomId }: ChatWindowProps) => {
   if (loading) return <CircularProgress size={24} />;
 
   return (
-    <Box height="calc(100vh - 80px)" display="flex" flexDirection="column">
-      <List ref={listRef} sx={{ flex: 1, overflowY: "auto", bgcolor: "background.paper" }}>
+    <Box
+      display="flex"
+      flexDirection="column"
+      sx={{
+        height: "100%",
+        minHeight: 0,
+        overflow: "hidden",
+        px: { xs: 1, sm: 2 },
+        pb: { xs: 1, sm: 2 },
+      }}
+    >
+      <List ref={listRef}
+        sx={{
+          flex: 1,
+          overflowY: "auto",
+          overflowX: "hidden",
+          bgcolor: "background.paper",
+          scrollBehavior: "smooth",
+          px: { xs: 0.5, sm: 1.5 },
+        }}>
         {messages.length === 0 && (
           <Typography color="textSecondary" sx={{ p: 2 }}>No messages yet. Start the conversation!</Typography>
         )}
@@ -129,24 +147,63 @@ const ChatWindow = ({ chatroomId }: ChatWindowProps) => {
               primary={
                 <ReactMarkdown
                   components={{
-                    p: ({ children }) => (
-                      <Typography variant="body1" component="span">
-                        {children}
-                      </Typography>
-                    ),
-                    strong: ({ children }) => <strong>{children}</strong>,
-                    em: ({ children }) => <em>{children}</em>,
-                    a: ({ href, children }) => (
-                      <a
-                        href={href}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        style={{ color: "#1976d2" }}
-                      >
-                        {children}
-                      </a>
-                    ),
-                  }}
+                  p: ({ children }) => (
+                    <Typography
+                      variant="body1"
+                      component="div"
+                      sx={{
+                        fontSize: { xs: "0.85rem", sm: "1rem" },
+                        lineHeight: { xs: 1.6, sm: 1.5 },
+                        whiteSpace: "normal",
+                        overflowWrap: "anywhere",
+                        wordBreak: "break-word",
+                      }}
+                    >
+                      {children}
+                    </Typography>
+                  ),
+
+                  // 🟩 NEW: bullet lists
+                  ul: ({ children }) => (
+                    <Box component="ul" sx={{ pl: 2.5, m: 0, fontSize: { xs: "0.85rem", sm: "1rem" } }}>
+                      {children}
+                    </Box>
+                  ),
+
+                  // 🟩 NEW: numbered lists
+                  ol: ({ children }) => (
+                    <Box component="ol" sx={{ pl: 2.5, m: 0, fontSize: { xs: "0.85rem", sm: "1rem" } }}>
+                      {children}
+                    </Box>
+                  ),
+
+                  // 🟩 NEW: headers like ## Title
+                  h1: ({ children }) => (
+                    <Typography variant="h6" sx={{ fontSize: { xs: "1rem", sm: "1.25rem" }, fontWeight: 600, mb: 0.5 }}>
+                      {children}
+                    </Typography>
+                  ),
+
+                  h2: ({ children }) => (
+                    <Typography variant="subtitle1" sx={{ fontSize: { xs: "0.95rem", sm: "1.1rem" }, fontWeight: 600, mb: 0.5 }}>
+                      {children}
+                    </Typography>
+                  ),
+
+                  strong: ({ children }) => <strong>{children}</strong>,
+                  em: ({ children }) => <em>{children}</em>,
+                  a: ({ href, children }) => (
+                    <a
+                      href={href}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      style={{ color: "#1976d2" }}
+                    >
+                      {children}
+                    </a>
+                  ),
+                }}
+
                 >
                   {msg.text}
                 </ReactMarkdown>
@@ -156,9 +213,14 @@ const ChatWindow = ({ chatroomId }: ChatWindowProps) => {
                 bgcolor: msg.sender === "user" ? "#e3f2fd" : "#fffde7",
                 borderRadius: 2,
                 px: 2,
-                py: 0.5,
-                maxWidth: "70%",
+                py: 1,
+                maxWidth: { xs: "90%", sm: "70%" },
+                minWidth: { xs: "65%", sm: "auto" },
                 overflowWrap: "break-word",
+                wordBreak: "break-word",
+                fontSize: { xs: "0.85rem", sm: "1rem" },
+                width: "fit-content",
+                alignSelf: msg.sender === "user" ? "flex-end" : "flex-start",
               }}
             />
 
@@ -168,10 +230,10 @@ const ChatWindow = ({ chatroomId }: ChatWindowProps) => {
               sx={{
                 display: "flex",
                 gap: 1,
-                opacity: 0,
+                opacity: { xs: 1, sm: 0 },
                 transition: "opacity 0.2s",
                 mt: 0.5,
-              }}
+               }}
             >
               {/* Edit icon only for user messages */}
               {msg.sender === "user" && (
@@ -373,7 +435,20 @@ const ChatWindow = ({ chatroomId }: ChatWindowProps) => {
       <Paper
         component="form"
         onSubmit={handleSend}
-        sx={{ display: "flex", alignItems: "center", p: 1, mt: 1 }}
+        sx={{
+          display: "flex",
+          alignItems: "center",
+          p: { xs: 0.5, sm: 1 },
+          mt: 1,
+          position: "sticky",
+          bottom: 0,
+          left: 0,
+          right: 0,
+          bgcolor: "#fff",
+          borderTop: "1px solid #ddd",
+          overflow: "hidden",
+          zIndex: 5,
+        }}
         elevation={3}
       >
         <TextField
@@ -382,12 +457,19 @@ const ChatWindow = ({ chatroomId }: ChatWindowProps) => {
           placeholder="Type your message…"
           fullWidth
           size="small"
-          disabled={sending}
+          InputProps={{
+            sx: { fontSize: { xs: "0.9rem", sm: "1rem" } },
+          }}
           onKeyDown={(e) => {
             if (e.key === "Enter" && !e.shiftKey) handleSend(e as any);
           }}
         />
-        <IconButton type="submit" color="primary" disabled={sending || !input.trim()}>
+        <IconButton
+          type="submit"
+          color="primary"
+          disabled={sending || !input.trim()}
+          sx={{ ml: { xs: 0, sm: 1 } }}
+        >
           <SendIcon />
         </IconButton>
       </Paper>

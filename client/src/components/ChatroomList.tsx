@@ -10,6 +10,7 @@ import { db, auth } from "../services/firebase";
 import type { Chatroom } from "../types/chatroom";
 import type { DocumentData } from "firebase/firestore";
 import ChatroomForm from "./ChatroomForm";
+import { useMediaQuery, useTheme } from "@mui/material";
 
 interface ChatroomListProps {
   selectedId?: string;
@@ -24,6 +25,8 @@ const ChatroomList = ({ selectedId, onSelect, onDialogChange }: ChatroomListProp
   const [menuChatroom, setMenuChatroom] = useState<Chatroom | null>(null);
   const [editOpen, setEditOpen] = useState(false);
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
 
   useEffect(() => {
     if (!auth.currentUser) return;
@@ -100,18 +103,99 @@ const ChatroomList = ({ selectedId, onSelect, onDialogChange }: ChatroomListProp
   };
 
   if (loading) return <CircularProgress size={24} />;
-  if (chatrooms.length === 0) return <Typography variant="body2" color="textSecondary">No chatrooms yet.</Typography>;
+  if (chatrooms.length === 0)
+  return (
+    <Box
+      display="flex"
+      justifyContent="center"
+      alignItems="center"
+      height="100%"
+      px={2}
+      textAlign="center"
+    >
+      <Typography
+        variant="body2"
+        color="text.secondary"
+        sx={{ fontSize: { xs: "0.9rem", sm: "1rem" } }}
+      >
+        No chatrooms yet. Tap “Create Chatroom” to get started.
+      </Typography>
+    </Box>
+  );
 
   return (
-    <List>
+    <List
+      disablePadding
+      sx={{
+        width: "100%",
+        overflowY: "auto",
+        overflowX: "hidden",
+        maxHeight: "100%",
+        px: { xs: 0.5, sm: 1 },
+        scrollBehavior: "smooth",
+      }}
+    >
       {chatrooms.map(room => (
         <ListItem key={room.id} disablePadding sx={{ position: "relative", "&:hover .chatroom-actions": { opacity: 1 }}}>
-          <ListItemButton selected={selectedId === room.id} onClick={() => onSelect(room.id)}>
-            <ListItemText primary={room.name} secondary={room.description} />
+          <ListItemButton
+            selected={selectedId === room.id}
+            onClick={() => onSelect(room.id)}
+            sx={{
+              borderRadius: 1,
+              py: { xs: 1, sm: 1.2 },
+              px: { xs: 1, sm: 2 },
+              "&.Mui-selected": {
+                bgcolor: "#e3f2fd",
+                "&:hover": { bgcolor: "#bbdefb" },
+              },
+            }}
+          >
+            <ListItemText
+              primary={
+                <Typography
+                  variant="subtitle1"
+                  noWrap
+                  sx={{
+                    fontSize: { xs: "0.9rem", sm: "1rem" },
+                    fontWeight: 500,
+                  }}
+                >
+                  {room.name}
+                </Typography>
+              }
+              secondary={
+                <Typography
+                  variant="body2"
+                  noWrap
+                  sx={{
+                    fontSize: { xs: "0.8rem", sm: "0.9rem" },
+                    color: "text.secondary",
+                  }}
+                >
+                  {room.description}
+                </Typography>
+              }
+            />
           </ListItemButton>
-
-          <Box className="chatroom-actions" sx={{position: "absolute", right: 4, top: 6, opacity: 0, transition: "opacity 0.2s"}}>
-            <IconButton size="small" onClick={e => handleMenuOpen(e, room)} aria-label="more">
+          <Box
+            className="chatroom-actions"
+            sx={{
+              position: "absolute",
+              right: { xs: 2, sm: 4 },
+              top: { xs: 8, sm: 6 },
+              opacity: { xs: 1, sm: 0 }, // ✅ always visible on mobile
+              transition: "opacity 0.2s",
+            }}
+          >
+            <IconButton
+              size="small"
+              onClick={(e) => handleMenuOpen(e, room)}
+              aria-label="more"
+              sx={{
+                padding: { xs: 0.5, sm: 1 },
+                "& svg": { fontSize: { xs: 18, sm: 20 } },
+              }}
+            >
               <MoreVertIcon />
             </IconButton>
           </Box>
@@ -124,7 +208,20 @@ const ChatroomList = ({ selectedId, onSelect, onDialogChange }: ChatroomListProp
       </Menu>
 
       {/* Edit */}
-      <Dialog open={editOpen} onClose={handleEditClose} maxWidth="xs" fullWidth>
+      <Dialog
+        open={editOpen}
+        onClose={handleEditClose}
+        fullScreen={isMobile}
+        maxWidth="xs"
+        fullWidth
+        PaperProps={{
+          sx: {
+            mt: { xs: "120px", sm: 0 }, // ✅ push dialog below the TopBar
+            borderRadius: { xs: 0, sm: 2 }, // keep nice rounded corners on desktop
+            overflow: "hidden",
+          },
+        }}
+      >
         <DialogTitle>Edit Chatroom</DialogTitle>
         <DialogContent sx={{ overflow: "visible" }}>
           {menuChatroom && (
@@ -136,21 +233,62 @@ const ChatroomList = ({ selectedId, onSelect, onDialogChange }: ChatroomListProp
       </Dialog>
 
       {/* Delete */}
-      <Dialog open={deleteConfirmOpen} onClose={handleDeleteClose} maxWidth="xs" fullWidth PaperProps={{sx: { pt: 1, pb: 2, pr:2, pl:1}}}>
-        <DialogTitle>Delete Chatroom</DialogTitle>
-        <DialogContent>
-          {menuChatroom && (
-            <Typography>
-              Are you sure you want to delete "<b>{menuChatroom.name}</b>"? <br />
-              <span style={{ color: "#e53935" }}>All conversation history will be deleted.</span>
-            </Typography>
-          )}
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={handleDeleteClose}>Cancel</Button>
-          <Button onClick={handleDeleteConfirm} color="error" variant="contained">Delete</Button>
-        </DialogActions>
-      </Dialog>
+      <Dialog
+        open={deleteConfirmOpen}
+        onClose={handleDeleteClose}
+        fullScreen={false} // 🟩 Disable fullScreen for mobile so it behaves like Edit
+        maxWidth="xs"
+        fullWidth
+        PaperProps={{
+          sx: {
+            mt: { xs: "120px", sm: 0 }, // 🟩 consistent offset below TopBar
+            mx: { xs: 2, sm: 0 }, // 🟩 small side margins on mobile
+            borderRadius: 2,
+            overflow: "hidden",
+            boxShadow: 6, // 🟩 match Edit Chatroom popup shadow
+          },
+        }}
+      >
+      <DialogTitle>Delete Chatroom</DialogTitle>
+
+      <DialogContent sx={{ overflow: "visible", mt: 1 }}>
+        {menuChatroom && (
+          <Typography sx={{ fontSize: { xs: "0.95rem", sm: "1rem" } }}>
+            Are you sure you want to delete{" "}
+            <b>{menuChatroom.name}</b>? <br />
+            <span style={{ color: "#e53935" }}>
+              All conversation history will be deleted.
+            </span>
+          </Typography>
+        )}
+      </DialogContent>
+
+      <DialogActions sx={{ justifyContent: "flex-end", px: 2, pb: 2 }}>
+        <Button
+          onClick={handleDeleteClose}
+          sx={{
+            textTransform: "none",
+            fontWeight: 500,
+            color: "error.main",
+          }}
+        >
+          CANCEL
+        </Button>
+        <Button
+          onClick={handleDeleteConfirm}
+          variant="contained"
+          color="error"
+          sx={{
+            textTransform: "none",
+            fontWeight: 500,
+            boxShadow: 1,
+          }}
+        >
+          DELETE
+        </Button>
+      </DialogActions>
+    </Dialog>
+
     </List>
   );
 };
