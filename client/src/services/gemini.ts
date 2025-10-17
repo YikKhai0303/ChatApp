@@ -21,7 +21,7 @@ export async function getGeminiReply(
     }
     lastCallTime = now;
 
-    const response = await fetch('http://localhost:3001/api/gemini', {
+    const response = await fetch("https://us-central1-chatapp-ace9b.cloudfunctions.net/api/gemini", {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ promptMessages }),
